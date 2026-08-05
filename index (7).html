@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>HomeTheater</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --panel-bg: rgba(28, 28, 30, 0.65);
+    --panel-border: rgba(255, 255, 255, 0.15);
+    --chalk: #ffffff;
+    --chalk-dim: rgba(235, 235, 245, 0.6);
+    --muted: #8e8e93;
+    --accent: #ffd60a;
+    --accent-hover: #ffdf33;
+    --accent-ink: #1c1c1e;
+    --danger: #ff453a;
+    --danger-bg: rgba(255, 69, 58, 0.15);
+    --glass-btn-bg: rgba(255, 255, 255, 0.1);
+    --glass-btn-border: rgba(255, 255, 255, 0.2);
+    --glass-blur: blur(20px);
+    --radius: 18px;
+    --apple-font: -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "Hiragino Kaku Gothic ProN", "Hiragino Sans", sans-serif;
+    --mono: 'JetBrains Mono', ui-monospace, monospace;
+    --bg-gradient: radial-gradient(circle at 15% 50%, rgba(255, 214, 10, 0.03), transparent 25%),
+                   radial-gradient(circle at 85% 30%, rgba(255, 255, 255, 0.02), transparent 25%);
+  }
+
+  /* ライトモード用変数定義 */
+  body.light-mode {
+    --bg: #f5f5f7;
+    --panel-bg: rgba(255, 255, 255, 0.65);
+    --panel-border: rgba(0, 0, 0, 0.1);
+    --chalk: #1d1d1f;
+    --chalk-dim: rgba(60, 60, 67, 0.7);
+    --muted: #86868b;
+    --accent: #0071e3;
+    --accent-hover: #0077ed;
+    --accent-ink: #ffffff;
+    --glass-btn-bg: rgba(0, 0, 0, 0.05);
+    --glass-btn-border: rgba(0, 0, 0, 0.15);
+    --bg-gradient: radial-gradient(circle at 15% 50%, rgba(0, 113, 227, 0.04), transparent 25%),
+                   radial-gradient(circle at 85% 30%, rgba(0, 0, 0, 0.02), transparent 25%);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background-color: var(--bg);
+    background-image: var(--bg-gradient);
+    color: var(--chalk);
+    font-family: var(--apple-font);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: 40px 20px 80px;
+    -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease, background-image 0.3s ease;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; }
+
+  /* Header */
+  header { margin-bottom: 36px; text-align: center; position: relative; }
+  .header-controls { position: absolute; top: 0; right: 0; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    color: var(--muted); border: 1px solid var(--panel-border);
+    padding: 6px 14px; border-radius: 999px; margin-bottom: 16px;
+    text-transform: uppercase;
+  }
+  h1 {
+    font-weight: 700; font-size: clamp(28px, 5vw, 42px);
+    margin: 0 0 10px; letter-spacing: -0.02em;
+  }
+  header p.lead { color: var(--chalk-dim); margin: 0 auto; font-size: 15px; max-width: 56ch; }
+
+  /* Panel (Frosted Glass) */
+  .panel {
+    background: var(--panel-bg);
+    backdrop-filter: var(--glass-blur);
+    -webkit-backdrop-filter: var(--glass-blur);
+    border: 1px solid var(--panel-border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    transition: background 0.3s ease, border 0.3s ease;
+  }
+  body:not(.light-mode) .panel {
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  }
+  .panel h2 {
+    font-size: 17px; font-weight: 600; margin: 0 0 18px;
+    display: flex; align-items: center; gap: 10px; color: var(--chalk);
+  }
+  .panel h2 .num {
+    font-family: var(--mono); font-size: 12px; color: var(--accent-ink);
+    background: var(--accent); border-radius: 8px; padding: 3px 8px; font-weight: bold;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  /* Form Elements */
+  .search-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  input[type=text], select {
+    font-family: var(--apple-font); font-size: 15px; color: var(--chalk);
+    background: rgba(0,0,0,0.2); border: 1px solid var(--glass-btn-border);
+    border-radius: 12px; padding: 14px 16px; outline: none;
+    transition: all 0.2s ease;
+  }
+  body:not(.light-mode) input[type=text], body:not(.light-mode) select {
+    background: rgba(0,0,0,0.4);
+  }
+  input[type=text]:focus, select:focus {
+    border-color: var(--accent);
+    background: rgba(0,0,0,0.3);
+  }
+  body:not(.light-mode) input[type=text]:focus, body:not(.light-mode) select:focus {
+    background: rgba(0,0,0,0.6);
+  }
+  #urlInput { flex: 1 1 320px; min-width: 0; }
+  
+  /* Buttons (Frosted Glass & Accent) */
+  button {
+    font-family: var(--apple-font); font-weight: 600; font-size: 15px;
+    border-radius: 12px; cursor: pointer; transition: all 0.2s ease;
+    border: 1px solid var(--glass-btn-border);
+    background: var(--glass-btn-bg);
+    color: var(--chalk);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 14px 20px;
+  }
+  button:active { transform: scale(0.98); }
+  button:hover { background: rgba(255, 255, 255, 0.15); }
+  body.light-mode button:hover { background: rgba(0, 0, 0, 0.08); }
+  
+  .btn-primary {
+    background: var(--accent);
+    color: var(--accent-ink);
+    border: none;
+    box-shadow: 0 4px 12px rgba(255, 214, 10, 0.2);
+  }
+  body.light-mode .btn-primary {
+    box-shadow: 0 4px 12px rgba(0, 113, 227, 0.2);
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  
+  .btn-ghost { background: transparent; border-color: var(--accent); color: var(--accent); }
+  .btn-ghost:hover { background: rgba(255, 214, 10, 0.1); }
+  body.light-mode .btn-ghost:hover { background: rgba(0, 113, 227, 0.1); }
+  
+  .btn-danger { background: transparent; color: var(--danger); border-color: var(--danger-bg); }
+  .btn-danger:hover { background: var(--danger-bg); border-color: var(--danger); }
+  
+  .btn-small { padding: 8px 14px; font-size: 13px; border-radius: 8px; }
+  
+  .field { display: flex; flex-direction: column; gap: 8px; }
+  .field label { font-size: 13px; color: var(--muted); font-weight: 500; }
+  select { padding: 12px 16px; min-width: 140px; cursor: pointer; }
+
+  /* Player Stage */
+  .stage {
+    position: relative; padding: 0;
+    background: #000;
+    border-radius: 14px;
+    box-shadow: 0 20px 50px -10px rgba(0,0,0,0.8);
+    overflow: hidden;
+    border: 1px solid var(--panel-border);
+  }
+  .video-box { position: relative; width: 100%; aspect-ratio: 16/9; background: #000; }
+  .video-box iframe, .video-box img { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  
+  /* 黒板シアター風のステータスオーバーレイ */
+  .player-status-overlay {
+    position: absolute; inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    gap: 16px; color: #ffffff; opacity: 0; pointer-events: none;
+    transition: opacity 0.3s ease; z-index: 10; font-size: 14px; text-align: center;
+  }
+  .player-status-overlay.active { opacity: 1; pointer-events: auto; }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 4px solid rgba(255, 255, 255, 0.1);
+    border-left-color: var(--accent);
+    border-radius: 50%; animation: spin 1s linear infinite;
+  }
+  @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+  .placeholder {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 12px; color: var(--muted); font-size: 14px; text-align: center; padding: 20px;
+  }
+  .placeholder .big { font-size: 40px; margin-bottom: 10px; }
+
+  .meta-row {
+    display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+    margin-top: 20px; flex-wrap: wrap;
+  }
+  .meta-left { flex: 1; min-width: 0; }
+  #titleDisplay { font-size: 18px; font-weight: 700; color: var(--chalk); letter-spacing: 0.02em; }
+  #titleDisplay.muted { color: var(--muted); font-weight: 500; font-size: 15px; }
+  #idDisplay { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-top: 6px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  /* History & Favorites Tiles */
+  .list-empty-msg { color: var(--muted); font-size: 14px; }
+  .history-scroll { display: flex; gap: 16px; overflow-x: auto; padding: 10px 4px 20px; scrollbar-width: thin; }
+  .hcard {
+    flex: 0 0 180px;
+    background: var(--glass-btn-bg);
+    border: 1px solid var(--glass-btn-border);
+    border-radius: 14px;
+    padding: 10px;
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  .hcard:hover { border-color: var(--accent); background: rgba(255, 255, 255, 0.15); transform: translateY(-3px); }
+  body.light-mode .hcard:hover { background: rgba(0, 0, 0, 0.04); }
+  .hcard img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 8px; margin-bottom: 10px; background: #000; }
+  .hcard .htitle {
+    font-weight: 500; font-size: 13px; color: var(--chalk);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4;
+  }
+  .hcard .hdel {
+    position: absolute; top: -6px; right: -6px; width: 24px; height: 24px; border-radius: 50%;
+    background: rgba(0,0,0,0.6); color: #fff; border: 1px solid var(--panel-border); font-size: 14px;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s ease;
+  }
+  .hcard .hdel:hover { background: var(--danger); border-color: var(--danger); color: #fff; }
+  .section-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+
+  /* Comments */
+  #commentsEmpty { color: var(--muted); font-size: 14px; text-align: center; padding: 30px; }
+  .comment-item { display: flex; gap: 14px; margin-bottom: 24px; }
+  .comment-avatar img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 1px solid var(--panel-border); }
+  .comment-content { flex: 1; overflow-wrap: anywhere; }
+  .comment-header { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 6px; font-size: 14px; }
+  .author-name { font-weight: 600; color: var(--chalk); }
+  .published-date { color: var(--muted); font-size: 12px; }
+  .badge { font-size: 11px; padding: 2px 8px; border-radius: 6px; color: var(--accent-ink); font-weight: 600; background: var(--accent); }
+  .comment-text { font-size: 15px; line-height: 1.6; color: var(--chalk-dim); margin-bottom: 10px; }
+  .comment-text a { color: var(--accent); text-decoration: none; }
+  .comment-text a:hover { text-decoration: underline; }
+  .comment-footer { display: flex; align-items: center; gap: 16px; font-size: 13px; color: var(--muted); }
+  .creator-heart { display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.1); padding: 4px 10px; border-radius: 12px; }
+  body.light-mode .creator-heart { background: rgba(0,0,0,0.05); }
+  .creator-heart img { width: 18px; height: 18px; border-radius: 50%; }
+
+  @media(max-width: 500px) {
+    .header-controls { position: static; margin-bottom: 16px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="header-controls">
+      <button type="button" id="themeToggleBtn" class="btn-ghost btn-small">🌙 Dark Mode</button>
+    </div>
+    <span class="eyebrow"> HomeTheater</span>
+    <h1>HomeTheater</h1>
+    <p class="lead">Appleスタイルで快適な視聴体験を。好みのサーバーや自動フォールバックでブロックを回避します。</p>
+  </header>
+
+  <!-- 検索・設定フォーム -->
+  <section class="panel">
+    <h2><span class="num">1</span>ビデオ設定</h2>
+    
+    <div class="field" style="margin-bottom: 16px;">
+      <label>再生ソース（youtubeeducation.com系サーバー）</label>
+      <select id="paramSource" style="width: 100%;">
+        <option value="Auto">自動 (推奨 - 自動検知切り替え)</option>
+        <option value="Education - 1">Education - 1</option>
+        <option value="Education - 2">Education - 2</option>
+        <option value="Education - 3">Education - 3</option>
+        <option value="Education - 4">Education - 4</option>
+      </select>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="urlInput" placeholder="YouTube URL または 動画IDを入力" autocomplete="off">
+    </div>
+
+    <div class="search-row">
+      <button type="button" id="btnPlay" class="btn-primary" style="flex: 1;">▶ 再生する</button>
+    </div>
+  </section>
+
+  <!-- プレーヤー -->
+  <section class="panel" id="theaterSection" style="display: none;">
+    <h2><span class="num">2</span>シアター</h2>
+    <div class="stage">
+      <div class="video-box" id="videoBox">
+        <!-- 黒板シアター風ステータスオーバーレイ -->
+        <div class="player-status-overlay" id="playerStatusOverlay">
+          <div class="spinner"></div>
+          <div id="statusOverlayText">サーバー接続中...</div>
+        </div>
+        <div class="placeholder" id="placeholder">
+          <div class="big">🎬</div>
+          <div>URLを入力して再生ボタンを押してください</div>
+        </div>
+      </div>
+    </div>
+    <div class="meta-row">
+      <div class="meta-left">
+        <div id="titleDisplay" class="muted">タイトル：未取得</div>
+        <div id="idDisplay"></div>
+      </div>
+      <div>
+        <button type="button" id="favoriteToggleBtn" class="btn-ghost btn-small">⭐ お気に入りに追加</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- コメント -->
+  <section class="panel" id="commentsSection" style="display: none;">
+    <h2><span class="num">3</span>コメント <span id="commentCountBadge" style="font-size:15px; color:var(--accent);"></span></h2>
+    <div id="commentsContainer">
+      <div id="commentsEmpty">動画を再生するとここにコメントが表示されます。</div>
+    </div>
+  </section>
+
+  <!-- お気に入りライブラリ -->
+  <section class="panel">
+    <div class="section-head">
+      <h2 style="margin:0;"><span class="num">4</span>お気に入り</h2>
+    </div>
+    <div id="favoritesEmpty" class="list-empty-msg">お気に入りに登録された動画はここに保存されます。</div>
+    <div class="history-scroll" id="favoritesScroll"></div>
+  </section>
+
+  <!-- 履歴ライブラリ -->
+  <section class="panel">
+    <div class="section-head">
+      <h2 style="margin:0;"><span class="num">5</span>ライブラリ (履歴)</h2>
+      <button type="button" id="clearHistoryBtn" class="btn-danger btn-small">すべて削除</button>
+    </div>
+    <div id="historyEmpty" class="list-empty-msg">再生した動画はここにタイルとして保存されます。</div>
+    <div class="history-scroll" id="historyScroll"></div>
+  </section>
+
+</div>
+
+<script>
+  // --- データ群 ---
+  const URLS = {
+    "Education - 1": "https://raw.githubusercontent.com/wakame02/wktopu/refs/heads/main/edu.text",
+    "Education - 2": "https://raw.githubusercontent.com/siawaseok3/wakame/master/video_config.json",
+    "Education - 3": "https://raw.githubusercontent.com/toka-kun/Education/refs/heads/main/keys/key1.json",
+    "Education - 4": "https://raw.githubusercontent.com/wista-api-project/auto/refs/heads/main/edu/1.txt"
+  };
+
+  const autoServers = ["Education - 1", "Education - 2", "Education - 3", "Education - 4"];
+  let currentAutoIndex = 0;
+  let fallbackTimer = null; // 黒板シアター風エラー自動検知用タイマー
+
+  const fallbackApiUrls = [
+    "https://min-tube2-api.vercel.app",
+    "https://min-tube-api-3.vercel.app",
+    "https://server-minp.vercel.app"
+  ];
+  let cachedApiUrls = null;
+  let currentLoadedVideoId = null;
+  let currentLoadedVideoTitle = "タイトル不明";
+
+  // --- ストレージ管理拡張 ---
+  const store = {
+    getHistory(){ try { return JSON.parse(localStorage.getItem('yte_history_ht') || '[]'); } catch(e){ return []; } },
+    saveHistory(arr){ localStorage.setItem('yte_history_ht', JSON.stringify(arr.slice(0,30))); },
+    getFavorites(){ try { return JSON.parse(localStorage.getItem('yte_favorites_ht') || '[]'); } catch(e){ return []; } },
+    saveFavorites(arr){ localStorage.setItem('yte_favorites_ht', JSON.stringify(arr)); },
+    getTheme(){ return localStorage.getItem('yte_theme_ht') || 'dark'; },
+    saveTheme(theme){ localStorage.setItem('yte_theme_ht', theme); }
+  };
+
+  // --- 動画ID解析 ---
+  function extractVideoId(input) {
+    if (!input) return null;
+    const patterns = [
+      /[?&]v=([\w-]{11})/,
+      /(?:youtu\.be|embed|shorts|live|vi|videos|watch|w|s|v|video|stream|streams|m3u8|nocookie|edu|education|umekomi)\/([\w-]{11})/
+    ];
+    for (const p of patterns) {
+      const m = input.match(p);
+      if (m) return m[1];
+    }
+    if (/^[\w-]{11}$/.test(input.trim())) return input.trim();
+    return null;
+  }
+
+  function updateUrlParam(url, key, value) {
+    const regex = new RegExp(`([?&])(?:amp;)?${key}=[^&]*`, 'gi');
+    if (regex.test(url)) {
+       return url.replace(regex, (match, separator) => `${separator}${key}=${value}`);
+    }
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}${key}=${value}`;
+  }
+
+  // --- 再生処理のメインロジック ---
+  async function loadVideo(isAutoFallback = false) {
+    if (fallbackTimer) clearTimeout(fallbackTimer);
+    
+    const input = document.getElementById("urlInput").value.trim();
+    const videoId = extractVideoId(input);
+    if (!videoId) { alert("正しいURLまたは動画IDを入力してください。"); return; }
+
+    const sourceSelect = document.getElementById("paramSource").value;
+    let targetSource = sourceSelect;
+
+    // 「自動」ロジックの判定
+    if (sourceSelect === "Auto") {
+      if (!isAutoFallback) currentAutoIndex = 0; // 新規再生時はリセット
+      if (currentAutoIndex >= autoServers.length) {
+        showOverlayMessage("❌ すべてのサーバーで再生に失敗しました。");
+        setTimeout(() => hideOverlay(), 3000);
+        currentAutoIndex = 0;
+        return;
+      }
+      targetSource = autoServers[currentAutoIndex];
+    }
+
+    document.getElementById("theaterSection").style.display = "block";
+    document.getElementById("commentsSection").style.display = "block";
+
+    // 黒板シアター風オーバーレイ表示の有効化
+    showOverlayMessage(`📡 ${targetSource} に接続中...`);
+
+    const container = document.getElementById("videoBox");
+    // iframe以外の既存の要素を残しつつ古いiframeだけ消すため、iframe要素を探して削除
+    const oldIframe = container.querySelector("iframe");
+    if (oldIframe) oldIframe.remove();
+
+    // UI更新 (ID表示とフォールバック用ボタン)
+    const idDisplay = document.getElementById("idDisplay");
+    idDisplay.innerHTML = `<span>動画ID: ${videoId}</span> <span style="color:var(--muted); font-size: 11px;">(Source: ${targetSource})</span>`;
+    
+    // Autoモード時：手動フォールバックボタンも配置維持
+    if (sourceSelect === "Auto" && currentAutoIndex < autoServers.length - 1) {
+        const nextBtn = document.createElement("button");
+        nextBtn.className = "btn-ghost btn-small";
+        nextBtn.style.marginLeft = "10px";
+        nextBtn.innerText = `⚠️ 次のサーバーに切り替え`;
+        nextBtn.onclick = () => {
+            currentAutoIndex++;
+            loadVideo(true);
+        };
+        idDisplay.appendChild(nextBtn);
+    }
+
+    if (currentLoadedVideoId !== videoId || !isAutoFallback) {
+        document.getElementById("titleDisplay").textContent = 'タイトルを取得中...';
+        document.getElementById("titleDisplay").classList.add('muted');
+    }
+    
+    const iframe = document.createElement("iframe");
+    iframe.allowFullscreen = true;
+    iframe.allow = "autoplay; clipboard-write; encrypted-media; picture-in-picture";
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+    
+    let finalUrl = "";
+    try {
+      // ネットワークレベルのブロック検知（Fetchによる事前チェック）
+      const r = await fetch(URLS[targetSource], { cache: "no-store" });
+      if (!r.ok) throw new Error("Fetch failed");
+      let params = "";
+      const text = await r.text();
+      try { params = JSON.parse(text).result || JSON.parse(text).params || ""; } 
+      catch(e) { params = text; }
+      finalUrl = `https://www.youtubeeducation.com/embed/${videoId}${params}`;
+    } catch(e) {
+      // ネットワークレベルで失敗した場合、自動で次のサーバーへ進む（黒板シアター風即時自動切り替え）
+      if (sourceSelect === "Auto") {
+          currentAutoIndex++;
+          loadVideo(true);
+          return;
+      }
+      finalUrl = `https://www.youtubeeducation.com/embed/${videoId}`;
+    }
+
+    finalUrl = updateUrlParam(finalUrl, 'cc_load_policy', '0');
+    finalUrl = updateUrlParam(finalUrl, 'iv_load_policy', '3'); 
+    finalUrl = updateUrlParam(finalUrl, 'hl', 'ja'); 
+    finalUrl = updateUrlParam(finalUrl, 'enablejsapi', '1'); 
+
+    iframe.src = finalUrl;
+    
+    // 【黒板シアター風 エラー自動検知・タイムアウト監視システム】
+    // iframeの読み込みが開始されてから一定時間（5.5秒）以内にロード完了イベントが来ない、
+    // またはブロック等で応答がない場合、エラーとみなして自動的に次のサーバーにスイッチする。
+    if (sourceSelect === "Auto") {
+      fallbackTimer = setTimeout(() => {
+          console.warn(`${targetSource} の応答タイムアウトを検知しました。次のサーバーに自動フォールバックします。`);
+          currentAutoIndex++;
+          loadVideo(true);
+      }, 5500);
+    }
+
+    iframe.onload = () => {
+      // 正常にiframeがロードされたら切り替えタイマーをクリアしてオーバーレイを消す
+      if (fallbackTimer) clearTimeout(fallbackTimer);
+      hideOverlay();
+    };
+
+    container.appendChild(iframe);
+
+    if (currentLoadedVideoId !== videoId || !isAutoFallback) {
+        currentLoadedVideoId = videoId;
+        fetchTitle(videoId);
+        fetchComments(videoId);
+    }
+  }
+
+  // --- 黒板シアター風オーバーレイ表示制御 ---
+  function showOverlayMessage(msg) {
+    const overlay = document.getElementById("playerStatusOverlay");
+    const textEl = document.getElementById("statusOverlayText");
+    textEl.textContent = msg;
+    overlay.classList.add("active");
+  }
+
+  function hideOverlay() {
+    const overlay = document.getElementById("playerStatusOverlay");
+    overlay.classList.remove("active");
+  }
+
+  // --- タイトル取得＆履歴 ---
+  async function fetchTitle(id) {
+    const watchUrl = 'https://www.youtube.com/watch?v=' + id;
+    try {
+      const res = await fetch('https://noembed.com/embed?url=' + encodeURIComponent(watchUrl));
+      const data = await res.json();
+      if (data && data.title) {
+        document.getElementById("titleDisplay").textContent = data.title;
+        document.getElementById("titleDisplay").classList.remove('muted');
+        currentLoadedVideoTitle = data.title;
+        updateHistory(id, data.title);
+        updateFavoriteButtonUI();
+        return;
+      }
+    } catch(e) {}
+    document.getElementById("titleDisplay").textContent = "タイトル取得不可";
+    currentLoadedVideoTitle = "タイトル不明";
+    updateHistory(id, "タイトル不明");
+    updateFavoriteButtonUI();
+  }
+
+  function updateHistory(id, title) {
+    let hist = store.getHistory().filter(h => h.id !== id);
+    hist.unshift({ id, title: title || id, at: Date.now() });
+    store.saveHistory(hist);
+    renderHistory();
+  }
+
+  function renderHistory() {
+    const hist = store.getHistory();
+    const scroll = document.getElementById("historyScroll");
+    scroll.innerHTML = '';
+    document.getElementById("historyEmpty").style.display = hist.length ? 'none' : 'block';
+    
+    hist.forEach(h => {
+      const card = document.createElement('div');
+      card.className = 'hcard';
+      card.innerHTML = `
+        <img src="https://i.ytimg.com/vi/${h.id}/mqdefault.jpg" onerror="this.style.display='none'">
+        <div class="htitle">${h.title}</div>
+        <div class="hdel">✕</div>
+      `;
+      card.querySelector('.hdel').onclick = (e) => {
+        e.stopPropagation();
+        store.saveHistory(store.getHistory().filter(x => x.id !== h.id));
+        renderHistory();
+      };
+      card.onclick = () => {
+        document.getElementById("urlInput").value = h.id;
+        loadVideo(false);
+      };
+      scroll.appendChild(card);
+    });
+  }
+
+  // --- お気に入り機能の実装 ---
+  function toggleFavorite() {
+    if (!currentLoadedVideoId) return;
+    let favs = store.getFavorites();
+    const isExist = favs.some(f => f.id === currentLoadedVideoId);
+
+    if (isExist) {
+      favs = favs.filter(f => f.id !== currentLoadedVideoId);
+    } else {
+      favs.unshift({ id: currentLoadedVideoId, title: currentLoadedVideoTitle, at: Date.now() });
+    }
+    store.saveFavorites(favs);
+    renderFavorites();
+    updateFavoriteButtonUI();
+  }
+
+  function updateFavoriteButtonUI() {
+    const btn = document.getElementById("favoriteToggleBtn");
+    if (!currentLoadedVideoId) return;
+    const favs = store.getFavorites();
+    const isExist = favs.some(f => f.id === currentLoadedVideoId);
+    if (isExist) {
+      btn.innerText = "⭐ お気に入り解除";
+      btn.classList.remove("btn-ghost");
+      btn.classList.add("btn-primary");
+    } else {
+      btn.innerText = "⭐ お気に入りに追加";
+      btn.classList.remove("btn-primary");
+      btn.classList.add("btn-ghost");
+    }
+  }
+
+  function renderFavorites() {
+    const favs = store.getFavorites();
+    const scroll = document.getElementById("favoritesScroll");
+    scroll.innerHTML = '';
+    document.getElementById("favoritesEmpty").style.display = favs.length ? 'none' : 'block';
+
+    favs.forEach(f => {
+      const card = document.createElement('div');
+      card.className = 'hcard';
+      card.innerHTML = `
+        <img src="https://i.ytimg.com/vi/${f.id}/mqdefault.jpg" onerror="this.style.display='none'">
+        <div class="htitle">${f.title}</div>
+        <div class="hdel">✕</div>
+      `;
+      card.querySelector('.hdel').onclick = (e) => {
+        e.stopPropagation();
+        store.saveFavorites(store.getFavorites().filter(x => x.id !== f.id));
+        renderFavorites();
+        updateFavoriteButtonUI();
+      };
+      card.onclick = () => {
+        document.getElementById("urlInput").value = f.id;
+        loadVideo(false);
+      };
+      scroll.appendChild(card);
+    });
+  }
+
+  // --- テーマ切り替え機能の実装 ---
+  function initTheme() {
+    const savedTheme = store.getTheme();
+    const btn = document.getElementById("themeToggleBtn");
+    if (savedTheme === 'light') {
+      document.body.classList.add('light-mode');
+      btn.innerText = "☀️ Light Mode";
+    } else {
+      document.body.classList.remove('light-mode');
+      btn.innerText = "🌙 Dark Mode";
+    }
+  }
+
+  function toggleTheme() {
+    const btn = document.getElementById("themeToggleBtn");
+    if (document.body.classList.contains('light-mode')) {
+      document.body.classList.remove('light-mode');
+      btn.innerText = "🌙 Dark Mode";
+      store.saveTheme('dark');
+    } else {
+      document.body.classList.add('light-mode');
+      btn.innerText = "☀️ Light Mode";
+      store.saveTheme('light');
+    }
+  }
+
+  // --- コメント機能 ---
+  function sanitizeHTML(html) {
+    const div = document.createElement('div');
+    div.innerHTML = html;
+    ['script', 'iframe', 'object', 'style'].forEach(tag => {
+      div.querySelectorAll(tag).forEach(el => el.remove());
+    });
+    return div.innerHTML;
+  }
+
+  async function fetchComments(videoId) {
+    const container = document.getElementById("commentsContainer");
+    container.innerHTML = '<div id="commentsEmpty">コメントを取得中...</div>';
+    document.getElementById("commentCountBadge").innerText = '';
+
+    if (!cachedApiUrls) {
+      try {
+        const r = await fetch("https://raw.githubusercontent.com/Minotaur-ZAOU/test/refs/heads/main/min-tube-api.json");
+        cachedApiUrls = r.ok ? await r.json() : fallbackApiUrls;
+      } catch (err) { cachedApiUrls = fallbackApiUrls; }
+    }
+
+    let data = null;
+    for (const baseUrl of cachedApiUrls) {
+      try {
+        const res = await fetch(`${baseUrl.replace(/\/$/, '')}/api/comments/${videoId}`);
+        if (res.ok) { data = await res.json(); break; }
+      } catch (err) {}
+    }
+
+    if (!data || !data.comments || data.comments.length === 0) {
+      container.innerHTML = '<div id="commentsEmpty">コメントが見つかりませんでした。</div>';
+      return;
+    }
+
+    document.getElementById("commentCountBadge").innerText = `${data.commentCount || data.comments.length}件`;
+    let html = '';
+    
+    data.comments.forEach(c => {
+      const iconUrl = c.authorThumbnails?.[0]?.url || '';
+      let badges = '';
+      if (c.isPinned) badges += `<span class="badge" style="background:var(--muted); color:#fff;">📌 固定</span> `;
+      if (c.authorIsChannelOwner) badges += `<span class="badge">👑 配信者</span>`;
+
+      let heartHtml = c.creatorHeart ? `
+        <div class="creator-heart">
+          <img src="${c.creatorHeart.creatorThumbnail || iconUrl}">❤️
+        </div>` : '';
+
+      const safeHtml = sanitizeHTML(c.contentHtml).replace(/<a /g, '<a target="_blank" rel="noopener" ');
+
+      html += `
+        <div class="comment-item">
+          <div class="comment-avatar"><img src="${iconUrl}" onerror="this.style.display='none'"></div>
+          <div class="comment-content">
+            <div class="comment-header">
+              <span class="author-name">${c.author}</span> ${badges}
+              <span class="published-date">${c.publishedText}</span>
+            </div>
+            <div class="comment-text">${safeHtml}</div>
+            <div class="comment-footer">
+              <span>👍 ${c.likeCount}</span>
+              ${c.replies?.replyCount > 0 ? `<span>💬 ${c.replies.replyCount}</span>` : ''}
+              ${heartHtml}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+
+  // 【追加】黒板シアター(edu_player)由来の自動エラー検知システム
+  window.addEventListener('message', (e) => {
+    if (e.origin !== 'https://www.youtubeeducation.com') return;
+    
+    let data;
+    try { 
+      data = JSON.parse(e.data); 
+    } catch(err) { 
+      return; 
+    }
+    
+    if (data && data.event === 'onError'){
+      console.warn(`YouTube Player API エラー検知 (コード: ${data.info})。自動切り替えを実行します。`);
+      
+      const sourceSelect = document.getElementById("paramSource").value;
+      if (sourceSelect === "Auto") {
+        if (fallbackTimer) clearTimeout(fallbackTimer);
+        currentAutoIndex++;
+        loadVideo(true);
+      } else {
+        showOverlayMessage(`❌ 再生エラー (コード: ${data.info})`);
+      }
+    }
+  });
+
+  // --- イベントリスナー ---
+  document.getElementById("btnPlay").onclick = () => loadVideo(false);
+  document.getElementById("urlInput").addEventListener("keydown", (e) => { if (e.key === "Enter") loadVideo(false); });
+  document.getElementById("clearHistoryBtn").onclick = () => {
+    if (confirm('ライブラリの履歴をすべて削除しますか？')) { store.saveHistory([]); renderHistory(); }
+  };
+  document.getElementById("favoriteToggleBtn").onclick = toggleFavorite;
+  document.getElementById("themeToggleBtn").onclick = toggleTheme;
+
+  // 初期化
+  initTheme();
+  renderHistory();
+  renderFavorites();
+</script>
+</body>
+</html>
